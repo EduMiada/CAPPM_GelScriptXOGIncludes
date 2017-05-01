@@ -1,0 +1,23 @@
+<gel:script xmlns:core="jelly:core" xmlns:file="jelly:com.niku.union.gel.FileTagLibrary" xmlns:gel="jelly:com.niku.union.gel.GELTagLibrary"
+  xmlns:soap="jelly:com.niku.union.gel.SOAPTagLibrary" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sql="jelly:sql"
+  xmlns:util="jelly:util" xmlns:xog="http://www.niku.com/xog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  
+	<!--LOGON ON CLARITY AND SET THE SESSION TOKEN VARIABLE -->
+	<core:catch var="XOG_EXCEPTION">
+		<soap:invoke endpoint="${XOG_SERVER_URL}/niku/xog" var="auth">
+		  <soap:message>
+			<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xog="http://www.niku.com/xog">
+			  <soapenv:Header/>
+			  <soapenv:Body>
+				<xog:Login>
+				  <xog:Username>${XOG_USER_NAME}</xog:Username>
+				  <xog:Password>${XOG_PASSWORD}</xog:Password>
+				</xog:Login>
+			  </soapenv:Body>
+			</soapenv:Envelope>
+		  </soap:message>
+		</soap:invoke>
+		<!--GET THE SESSIONID-->
+		<gel:set asString="true" select="$auth/soapenv:Envelope/soapenv:Body/xog:SessionID/text()" var="XOG_SESSION_ID"/>
+	</core:catch>
+</gel:script>

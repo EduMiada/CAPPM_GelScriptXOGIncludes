@@ -1,0 +1,14 @@
+<gel:script xmlns:core="jelly:core" xmlns:file="jelly:com.niku.union.gel.FileTagLibrary" xmlns:gel="jelly:com.niku.union.gel.GELTagLibrary">
+
+<!-- GET APP URL FOR XOGING URL FROM THE APPLICATION -->
+	<core:catch var="XOG_EXCEPTION">
+		<core:invokeStatic className="com.niku.union.config.ConfigurationManager" method="getInstance" var="config"/>
+		<core:set value="${config.getProperties().getWebServer().getWebServerInstance(0).getId()}" var="WebServerid"/>
+		<core:if test="${WebServerid == 'app'}">
+			<core:set value="${config.getProperties().getWebServer().getWebServerInstance(0).getEntryUrl()}" var="EntryURL"/>
+			<core:set value="${EntryURL}" var="XOG_SERVER_URL"/>
+		</core:if>
+	</core:catch>
+<!-- END GET XOG URL -->
+
+</gel:script>

@@ -1,0 +1,66 @@
+<gel:script xmlns:core="jelly:core" 
+			xmlns:file="jelly:com.niku.union.gel.FileTagLibrary" 
+			xmlns:gel="jelly:com.niku.union.gel.GELTagLibrary"
+			xmlns:soap="jelly:com.niku.union.gel.SOAPTagLibrary" 
+			xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
+			xmlns:sql="jelly:sql"
+			xmlns:util="jelly:util" 
+			xmlns:xog="http://www.niku.com/xog" 
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+
+	<!--call XOG ws-->
+	<core:if test="${DebugLevel > 0}">
+	  <gel:log level="debug" message="PREPARA A CHAMADA AO WS DE IMPORTACAO"/>
+	</core:if>
+	
+	<core:catch var="XOG_EXCEPTION">
+	  <core:if test="${XOG_SESSION_ID != null}">
+		<soap:invoke endpoint="${XOG_SERVER_URL}/niku/xog" var="vResults">
+		  <soap:message>
+			<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xog="http://www.niku.com/xog">
+			  <soapenv:Header>
+				<xog:Auth>
+				  <xog:SessionID>${XOG_SESSION_ID}</xog:SessionID>
+				</xog:Auth>
+			  </soapenv:Header>
+			  <soapenv:Body>
+				<gel:include select="$xmldoc"/>
+			  </soapenv:Body>
+			</soapenv:Envelope>
+		  </soap:message>
+		</soap:invoke>
+	  </core:if>
+	</core:catch>
+	<core:if test="${DebugLevel > 0}">
+	  <gel:log level="debug" message="CHAMADA DE IMPORTACAO EXECUTADA"/>
+	</core:if>
+	<!--END XOG CALL-->
+	<!--READ OUTPUT-->
+	<core:if test="${XOG_EXCEPTION == null}">
+	  <gel:set asString="true" select="$vResults/soapenv:Envelope/soapenv:Body/XOGOutput/Status/@state" var="XOG_STATUS_STATE"/>
+	  <gel:set asString="true" select="$vResults/soapenv:Envelope/soapenv:Body/XOGOutput/Statistics/@failureRecords" var="XOG_FAILURE_RECORDS"/>
+	  <gel:set asString="true" select="$vResults/soapenv:Envelope/soapenv:Body/XOGOutput/Statistics/@insertedRecords" var="XOG_INSERTED_RECORDS"/>
+	  <gel:set asString="true" select="$vResults/soapenv:Envelope/soapenv:Body/XOGOutput/Statistics/@updatedRecords" var="XOG_UPDATED_RECORDS"/>
+	  <gel:set asString="true" select="$vResults/soapenv:Envelope/soapenv:Body/XOGOutput/Statistics/@totalNumberOfRecords" var="XOG_TOTAL_RECORDS"/>
+	  <gel:set asString="true" select="$vResults/soapenv:Envelope/soapenv:Body/XOGOutput/Records/Record/KeyInformation/column/text()" var="XOG_REF_NUMBER"/>
+	  <gel:set asString="true" select="$vResults/soapenv:Envelope/soapenv:Body/XOGOutput/Records/Record/ErrorInformation/Description/text()" var="XOG_ERR_INFORMATION"/>
+	  
+	  <core:if test="${DebugLevel > 0}">
+		<gel:log level="debug" message="STATUS_STATE: ${XOG_STATUS_STATE} "/>
+		<gel:log level="debug" message="FAILURE_RECORDS: ${XOG_FAILURE_RECORDS} "/>
+		<gel:log level="debug" message="INSERTED_RECORDS: ${XOG_INSERTED_RECORDS} "/>
+		<gel:log level="debug" message="UPDATE_RECORDS: ${XOG_UPDATED_RECORDS} "/>
+		<gel:log level="debug" message="TOTAL_RECORDS: ${XOG_TOTAL_RECORDS} "/>
+		<gel:log level="debug" message="ERR_REF_NUM: ${XOG_REF_NUMBER} "/>
+		<gel:log level="debug" message="ERR_INFO: ${XOG_ERR_INFORMATION}"/>
+	  </core:if>
+	 
+	 <core:if test="${DebugLevel ==2}">
+		<gel:log level="debug" message="GERA ARQUIVO XOG"/>
+		<gel:serialize fileName="${XOG_SERIALIZED_FILE}" var="${xmldoc}"/>
+		<gel:serialize fileName="${XOG_SERIALIZED_OUTPUT_FILE}" var="${vResults}"/>
+	  </core:if>
+	</core:if>
+	<!--END READ OUTPUT-->
+</gel:script>
